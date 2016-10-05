@@ -1,0 +1,79 @@
+= Legis-graph - Exploring US Congress as a Graph
+
+== The Data Model
+
+image::https://raw.githubusercontent.com/legis-graph/legis-graph/master/img/datamodel.png[float=right]
+
+The data for this example comes from Govtrack.us
+
+//This is the basic data model:
+//
+//* a `+(:Intermediary)-[:INTERMEDIARY_OF]->(:Entity)+`
+//* an `+(:Officer)-[:OFFICER_OF]->(:Entity)+`
+//* an `+(:Officer)-[:SHAREHOLDER_OF]->(:Entity)+`
+//* an `+(:Officer)-[:REGISTERED_ADDRESS]->(:Address)+`
+//* an `+()-[:SIMILAR_NAME_AND_ADDRESS]->()+`
+
+
+== Who represents LA?
+
+[source,cypher]
+----
+// Who represents LA?
+MATCH (s:State)<-[:REPRESENTS]-(l:Legislator)
+WHERE s.code = "LA"
+RETURN s,l
+----
+
+== Who represents LA? - Party and legislative body
+
+[source,cypher]
+----
+// Who represents LA? - Party and legislative body
+MATCH (s:State)<-[:REPRESENTS]-(l:Legislator)
+WHERE s.code = "LA"
+MATCH (p:Party)<-[:IS_MEMBER_OF]-(l)-[:ELECTED_TO]->(b:Body)
+RETURN s,l,p,b
+----
+
+== Bill Cassidy's Committees
+
+[source,cypher]
+----
+// Bill Cassidy's committees
+MATCH (gardner:Legislator) WHERE gardner.firstName = "Bill" AND gardner.lastName = "Cassidy"
+MATCH (gardner)-[:SERVES_ON]->(c:Committee)
+RETURN gardner, c
+----
+
+
+== Examine a single bill for Bill Cassidy
+[source,cypher]
+----
+// Examine a single bill for Bill Cassidy
+MATCH (gardner:Legislator) WHERE gardner.firstName = "Bill" AND gardner.lastName = "Cassidy"
+MATCH (gardner)-[:SERVES_ON]->(c:Committee)<-[:REFERRED_TO]-(b:Bill)
+MATCH (b)-[:DEALS_WITH]->(subj:Subject)
+RETURN * LIMIT 5
+----
+
+== Over what topics does Bill Cassidy have influence?
+[source,cypher]
+----
+// Over what topics does Bill Cassidy have inluence?
+MATCH (gardner:Legislator) WHERE gardner.firstName = "Bill" AND gardner.lastName = "Cassidy"
+MATCH (gardner)-[:SERVES_ON]->(c:Committee)<-[:REFERRED_TO]-(b:Bill)
+MATCH (b)-[:DEALS_WITH]->(subj:Subject)
+RETURN subj, collect(DISTINCT c.name) AS committees, count(*) AS num ORDER BY num DESC LIMIT 25
+----
+
+== What are topics of bills sponsored by Bill Cassidy?
+[source,cypher]
+----
+// What are the topics of Bills sponsored by Cory Gardner
+MATCH (gardner:Legislator) WHERE gardner.firstName = "Cory" AND gardner.lastName = "Gardner"
+MATCH (gardner)<-[:SPONSORED_BY]-(b:Bill)
+MATCH (b)-[:DEALS_WITH]->(subj:Subject)
+RETURN subj, count(*) AS num ORDER BY num DESC LIMIT 25
+----
+
