@@ -16,6 +16,84 @@ MATCH ...some graph pattern...
 RETURN ...
 ----
 
+== Get familiar with the data... basic lookups
+
+image::https://raw.githubusercontent.com/legis-graph/legis-graph/master/img/datamodel.png[float=right]
+
+=== Looking for exact matches
+
+[source,cypher]
+----
+MATCH (l:Legislator)
+WHERE l.lastName = 'McCain'
+RETURN l
+----
+
+or a more compact version:
+
+[source,cypher]
+----
+MATCH (x:Legislator {lastName : 'McCain'})
+RETURN x
+----
+
+* Try to find senator Barrasso
+* Now try to find a legislator called 'Johnson', filters on non unique properties may return multiple results!
+* Identify unique identifiers for the entities in your graph
+
+=== Looking for approximate matches
+
+Legislator name starting with...
+
+[source,cypher]
+----
+MATCH (x:Legislator)
+WHERE x.lastName STARTS WITH "Ca"
+RETURN x
+----
+
+you have other approximate match functions: 'ENDS WITH', 'CONTAINS', '~'. Check the Cypher refcard for more.
+Filters can be combined logically with AND & OR
+
+[source,cypher]
+----
+MATCH (x:Legislator)
+WHERE x.lastName CONTAINS 'bi' AND x.birthday > "1970"
+RETURN x
+----
+
+* Find bills mentioning Cuba in its title
+* Find legislators older than 65 and with name ending in 'son'
+
+== Get familiar with the data... let's start building patterns
+
+image::https://raw.githubusercontent.com/legis-graph/legis-graph/master/img/datamodel.png[float=right]
+
+You can build a pattern incrementally by adding new queries
+
+[source,cypher]
+----
+MATCH (l:Legislator)
+WHERE l.lastName = 'McCain'
+MATCH (b:Bill)-[sb:SPONSORED_BY]->(l)
+WHERE b.officialTitle CONTAINS 'Affordable Care'
+RETURN b
+----
+
+or compact all patterns first patterns first:
+
+[source,cypher]
+----
+MATCH (b:Bill)-[sb:SPONSORED_BY]->(l:Legislator)
+WHERE l.lastName = 'McCain'
+  AND b.officialTitle CONTAINS 'Affordable Care'
+RETURN b
+----
+
+* Find the bills referred to the House Committee on Agriculture that mention livestock in their title
+
+
+
 == Explore by State
 
 image::https://raw.githubusercontent.com/legis-graph/legis-graph/master/img/datamodel.png[float=right]
