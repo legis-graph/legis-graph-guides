@@ -32,18 +32,18 @@ Let's explore the data available in each file. As you examine the data availabe 
 
 ==== cm.txt
 
-[source,cypher]
+[source,cypher,subs=attributes]
 ----
-LOAD CSV WITH HEADERS FROM "{csv-file}cm.txt" AS row FIELDTERMINATOR "|"
+LOAD CSV WITH HEADERS FROM "{csv-url}cm.txt" AS row FIELDTERMINATOR "|"
 WITH row limit 10
 RETURN row
 ----
 
 === ccl.txt
 
-[source,cypher]
+[source,cypher,subs=attributes]
 ----
-LOAD CSV WITH HEADERS FROM "{csv-file}cm.txt" AS row FIELDTERMINATOR "|"
+LOAD CSV WITH HEADERS FROM "{csv-url}cm.txt" AS row FIELDTERMINATOR "|"
 WITH row limit 10
 RETURN row
 ----
@@ -51,9 +51,9 @@ RETURN row
 
 === itcont_sm.txt
 
-[source,cypher]
+[source,cypher,subs=attributes]
 ----
-LOAD CSV WITH HEADERS FROM "{csv-file}cm.txt" AS row FIELDTERMINATOR "|"
+LOAD CSV WITH HEADERS FROM "{csv-url}cm.txt" AS row FIELDTERMINATOR "|"
 WITH row limit 10
 RETURN row
 ----

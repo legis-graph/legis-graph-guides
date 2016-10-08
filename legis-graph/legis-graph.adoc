@@ -40,7 +40,7 @@ RETURN s,l,p,b
 
 [source,cypher]
 ----
-// Bill Cassidy's committees
+// Charles Schumer's committees
 MATCH (l:Legislator) WHERE l.firstName = "Charles" AND l.lastName = "Schumer"
 MATCH (l)-[:SERVES_ON]->(c:Committee)
 RETURN l, c

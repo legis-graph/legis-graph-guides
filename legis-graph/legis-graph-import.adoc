@@ -64,7 +64,7 @@ CREATE CONSTRAINT ON (s:State) ASSERT s.code IS UNIQUE;
 
 [source,cypher]
 ----
-CREATE CONSTRAINT ON (b:Body) ASSERT s.type IS UNIQUE;
+CREATE CONSTRAINT ON (b:Body) ASSERT b.type IS UNIQUE;
 ----
 
 
@@ -97,7 +97,7 @@ MATCH (l:Legislator) RETURN l;
 We still need to create our `State`, `Body`, and `Party` nodes. We can do this by iterating through the CSV file one more time:
 
 [source,cypher,subs=attributes]
----
+----
 LOAD CSV WITH HEADERS
 FROM '{csv-url}legislators-current.csv' AS row
 MATCH (l:Legislator {thomasID: row.thomasID})
@@ -106,8 +106,8 @@ CREATE UNIQUE (l)-[:REPRESENTS]->(s)
 MERGE (p:Party {name: row.currentParty})
 CREATE UNIQUE (l)-[:IS_MEMBER_OF]->(p)
 MERGE (b:Body {type: row.type})
-CREATE UNIQUE (legislator)-[:ELECTED_TO]->(b);
----
+CREATE UNIQUE (l)-[:ELECTED_TO]->(b);
+----
 
 == Import Bills
 
@@ -159,7 +159,7 @@ Each bill can have one or more subjects:
 ----
 LOAD CSV WITH HEADERS
 FROM '{csv-url}subjects.csv' AS row
-RETURN s LIMIT 10;
+RETURN row LIMIT 10;
 ----
 
 Again, we create a uniqueness constraint:
@@ -187,7 +187,7 @@ Now we'll connect Bills to the Subjects that they deal with.
 USING PERIODIC COMMIT
 LOAD CSV WITH HEADERS
 FROM '{csv-url}bill_subjects.csv' AS row
-MATCH (bill:Bill { billID: line.billID }), (subject:Subject { title: line.title })
+MATCH (bill:Bill { billID: row.billID }), (subject:Subject { title: row.title })
 MERGE (bill)-[r:DEALS_WITH]->(subject);
 ----
 
@@ -201,9 +201,9 @@ image::{img}/lg-sponsoredby.png[]
 USING PERIODIC COMMIT
 LOAD CSV WITH HEADERS
 FROM '{csv-url}sponsors.csv' AS row
-MATCH (bill:Bill { billID: line.billID }), (legislator:Legislator { thomasID: line.thomasID })
+MATCH (bill:Bill { billID: row.billID }), (legislator:Legislator { thomasID: row.thomasID })
 MERGE (bill)-[r:SPONSORED_BY]->(legislator)
-    ON CREATE SET r.cosponsor = CASE WHERE row.cosponsor = "0" THEN False ELSE True END ;
+    ON CREATE SET r.cosponsor = CASE WHEN row.cosponsor = "0" THEN False ELSE True END ;
 ----
 
 == Committees
@@ -226,7 +226,7 @@ CREATE CONSTRAINT ON (c:Committee) ASSERT c.thomasID IS UNIQUE;
 // Create Committee nodes
 LOAD CSV WITH HEADERS
 FROM '{csv-url}committees-current.csv' AS row
-MERGE (c:Committee {thomasID: line.thomasID})
+MERGE (c:Committee {thomasID: row.thomasID})
   ON CREATE SET c = row;
 ----
 
