@@ -25,7 +25,9 @@ When we run this query we're loading data from a CSV file, using the headers in 
 
 The standard approach when using `LOAD CSV` to import data is:
 
-.
+. Create constraints
+. Create nodes
+. Create relationships
 
 Looking at the data from the previous query we can make a few observations:
 
