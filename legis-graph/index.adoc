@@ -1,6 +1,7 @@
 = Graphs In Data Journalism
 :csv-url: file:///
 :GUIDES: http://localhost:8001/ddj/
+
 == Graphs In Data Journalism
 
 //image::https://pbs.twimg.com/profile_images/1617809307/ire_twitter_400x400.png[float=right]
