@@ -100,7 +100,7 @@ image::http://www.lyonwj.com/public/img/betweenness-centrality.png[]
 
 [source,cypher]
 ----
-MATCH (b:Bill {billID: "hr1014-11"})-[r:SPONSORED_BY]->(sponsor:Legislator)
+MATCH (b:Bill {billID: "hr1014-114"})-[r:SPONSORED_BY]->(sponsor:Legislator)
 WHERE r.cosponsor = false
 MATCH (b)-[s:SPONSORED_BY]->(cosponsor:Legislator)
 WHERE s.cosponsor = true
@@ -110,11 +110,11 @@ RETURN *
 
 [source,cypher]
 ----
-MATCH (b:Bill {billID: "hr1014-11"})-[r:SPONSORED_BY]->(sponsor:Legislator)
+MATCH (b:Bill {billID: "hr1014-114"})-[r:SPONSORED_BY]->(sponsor:Legislator)
 WHERE r.cosponsor = false
 MATCH (b)-[s:SPONSORED_BY]->(cosponsor:Legislator)
 WHERE s.cosponsor = true
-CREATE (cosponsor)-[r:INFLUENCED_BY]->(sponsor)
+CREATE (cosponsor)-[i:INFLUENCED_BY]->(sponsor)
 RETURN *
 ----
 
@@ -131,6 +131,8 @@ CREATE (cosponsor)-[:INFLUENCED_BY]->(sponsor)
 
 Using PageRank to find influential Legislators:
 
+image::http://www.lyonwj.com/public/img/page-rank.png[]
+
 [source,cypher]
 ----
 MATCH (l:Legislator) WITH collect(l) AS ls
@@ -145,6 +147,8 @@ CALL apoc.algo.pageRankWithCypher({iterations:20, write:true, rel_cypher:'MATCH 
 ----
 
 == Finding communities
+
+image::http://www.lyonwj.com/public/img/community-1.png[]
 
 [source,cypher]
 ----
