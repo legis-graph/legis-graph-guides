@@ -33,12 +33,12 @@ image::https://raw.githubusercontent.com/legis-graph/legis-graph/master/img/data
 
 == Data Quality 
 
-The 'Renaissance problem' 
+The 'Renaissance Tech problem' 
 
 [source,cypher]
 ----
 MATCH (n:Employer) 
-WHERE n.name CONTAINS 'RENAISSANCE'
+WHERE n.name CONTAINS 'RENAISSANCE TECH'
 RETURN n.name AS name ORDER BY name
 ----
 What can we do about it?
