@@ -26,7 +26,7 @@ if [ "$1" == "publish" ]; then
   s3cmd put -P index.html s3://${URL}
   echo "Publication Done"
 else
-  URL=localhost:8001/legis-graph/
+  URL=localhost:8001/legis-graph
 # copy the csv files to $NEO4J_HOME/import
   render http://$URL -a csv-url=file:/// -a env-training
   echo "Starting Websever at $URL Ctrl-c to stop"

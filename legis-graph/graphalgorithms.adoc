@@ -1,0 +1,161 @@
+= Graph Algorithms
+:csv-file: file:///
+:GUIDES: http://localhost:8001/ddj/
+
+== Applying Graph Algorithms
+
+We can use Neo4j to apply graph algoriths like centralities and community detection to the data to find further insights. Specifically:
+
+. Can we find measure "influence" in Congress?
+. Can we find clusters, or communities of legislators who frequently vote together?
+
+== Procedures
+
+Procedures are a new feature in Neo4j 3.x which allow you to write custom code which can be invoked directly from Cypher.
+
+You can read more details in the link:http://neo4j.com/docs/developer-manual/current/#procedures[documentation].
+
+There are some built in procedures.
+You can see what they are by running the following command:
+
+[source, cypher]
+----
+CALL dbms.procedures()
+----
+
+Try running some of the procedures listed on the page.
+Do they work as you expected?
+
+== Using a procedure's output in a query
+
+We can use the output of procedures in a query as well as passing the output of a query into a procedure.
+For example if we want to get the list of labels in the database in alphabetical order we could write the following query:
+
+[source, cypher]
+----
+CALL db.labels() YIELD label AS label
+RETURN label
+ORDER BY label
+----
+
+All the built in procedures are used to introspect the database but we can also write our own procedures which can do whatever we want!
+
+== Installing apoc (Awesome procedures)
+
+Lucky for us link:https://twitter.com/mesirii[Michael] has actually done the heavy lifting already and created the link:https://github.com/neo4j-contrib/neo4j-apoc-procedures[apoc] library which contains lots of useful procedures that we can use in our recommendations queries.
+
+First follow these instructions to get `apoc` installed on your local instance of Neo4j:
+
+* You should have already copied `apoc.jar` onto your machine.
+If you haven't then grab a USB stick from one of the trainers or download the latest version of apoc from link:https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/latest[]
+
+* Copy `apoc.jar` into your `plugins` folder wherever you have installed Neo4j.
+
+////
+* If you're using Neo4j desktop you'll need to explicitly specify where that plugins folder is.
+You can do that by setting `dbms.directories.plugins` in `neo4j.conf`
+
+e.g. `dbms.directories.plugins=/Applications/Neo4j\ Community\ Edition.app/Contents/Resources/app/plugins` on Mac OS X
+////
+
+* Restart Neo4j
+
+== Check apoc installed correctly
+
+If you run the following command you can see which additional procedures are now available to us:
+
+[source,cypher]
+----
+CALL dbms.procedures() YIELD name AS name, signature AS signature
+WITH name, signature
+WHERE name STARTS WITH "apoc"
+RETURN name, signature
+----
+
+Let's give the procedures a try!
+
+== Measuring Influence In Congress
+
+Centrality measures:
+
+[source,cypher]
+----
+// Degree Centrality
+MATCH (l:Legislator)<-[:SPONSORED_BY]-()
+RETURN l, count(*) AS degree ORDER BY degree DESC LIMIT 10
+----
+
+[source,cypher]
+----
+// Betweenness Centrality
+MATCH (l:Legislator) WITH collect(l) AS ls
+CALL apoc.algo.betweenness(['SPONSORED_BY'], ls, 'BOTH') YIELD node, score
+RETURN node, score ORDER BY score DESC LIMIT 10
+----
+
+image::http://www.lyonwj.com/public/img/betweenness-centrality.png[]
+
+
+== Inferring Influence With Graph Theory
+
+[source,cypher]
+----
+MATCH (b:Bill {billID: "hr1014-11"})-[r:SPONSORED_BY]->(sponsor:Legislator)
+WHERE r.cosponsor = false
+MATCH (b)-[s:SPONSORED_BY]->(cosponsor:Legislator)
+WHERE s.cosponsor = true
+//CREATE (cosponsor)-[:INFLUENCED_BY]->(sponsor)
+RETURN *
+----
+
+[source,cypher]
+----
+MATCH (b:Bill {billID: "hr1014-11"})-[r:SPONSORED_BY]->(sponsor:Legislator)
+WHERE r.cosponsor = false
+MATCH (b)-[s:SPONSORED_BY]->(cosponsor:Legislator)
+WHERE s.cosponsor = true
+CREATE (cosponsor)-[r:INFLUENCED_BY]->(sponsor)
+RETURN *
+----
+
+Add `INFLUENCED_BY` relationships across the graph:
+
+[source,cypher]
+----
+MATCH (b:Bill)-[r:SPONSORED_BY]->(sponsor:Legislator)
+WHERE r.cosponsor = false
+MATCH (b)-[s:SPONSORED_BY]->(cosponsor:Legislator)
+WHERE s.cosponsor = true
+CREATE (cosponsor)-[:INFLUENCED_BY]->(sponsor)
+----
+
+Using PageRank to find influential Legislators:
+
+[source,cypher]
+----
+MATCH (l:Legislator) WITH collect(l) AS ls
+CALL apoc.algo.pageRank(ls) YIELD node, score
+RETURN node, score ORDER BY score DESC LIMIT 10
+
+[source,cypher]
+----
+// Calculate PageRank on Cypher result
+CALL apoc.algo.pageRankWithCypher({iterations:20, write:true, rel_cypher:'MATCH (p1:Legislator)<-[:INFLUENCED_BY]->(p2:Legislator) RETURN id(p1) as source, id(p2) as target, 1 as weight'})
+----
+
+== Finding communities
+
+[source,cypher]
+----
+MATCH (l1:Legislator)<-[:SPONSORED_BY]-()-[:SPONSORED_BY]->(l2:Legislator)
+WITH l1, l2, count(*) AS weight
+CREATE (l1)-[r:COSPONSORED]->(l2)
+SET r.weight = weight
+----
+
+[source,cypher]
+----
+CALL apoc.algo.community(25,['Legislator'],'partition','COSPONSORED','OUTGOING','weight',10000)
+----
+
+
