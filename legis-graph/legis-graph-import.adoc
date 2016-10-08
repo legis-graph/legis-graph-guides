@@ -45,7 +45,7 @@ How should we model this data? Let's consider:
 
 Based on the concepts we discussed previously, lets use this data model:
 
-image::http://localhost:8001/legis-graph/img/lg-datamodel1.png[]
+image::{img}/lg-datamodel1.png[]
 
 We have three node labels here, each with a property that uniquely identifies that node.
 
@@ -122,7 +122,7 @@ RETURN row LIMIT 10
 
 We'll use the `billID` property to uniquely identify bills:
 
-image::http://localhost:8001/legis-graph/img/lg-bill.png[]
+image::{img}/lg-bill.png[]
 
 First we extend our schema by defining a uniqueness constraint:
 
@@ -149,7 +149,7 @@ Note that we used a new Cypher keyword above, `USING PERIODIC COMMIT`. Adding th
 
 Next we'll add subjects to our data model:
 
-image::http://localhost:8001/legis-graph/img/lg-subject.png[]
+image::{img}/lg-subject.png[]
 
 
 Each bill can have one or more subjects:
@@ -178,7 +178,7 @@ MERGE (s:Subject {title: row.title})
 
 == Connecting Bills and Subjects
 
-image::http://localhost:8001/legis-graph/img/lg-dealswith.png[]
+image::{img}/lg-dealswith.png[]
 
 Now we'll connect Bills to the Subjects that they deal with.
 
@@ -194,7 +194,7 @@ MERGE (bill)-[r:DEALS_WITH]->(subject);
 
 == Bill Sponsorships
 
-image::http://localhost:8001/legis-graph/img/lg-sponsoredby.png[]
+image::{img}/lg-sponsoredby.png[]
 
 [source,cypher,subs=attributes]
 ----
@@ -212,7 +212,7 @@ In the final step we'll add Committees and connect `Committee` nodes to bills if
 
 
 
-image::http://localhost:8001/legis-graph/img/lg-committee.png[]
+image::{img}/lg-committee.png[]
 
 Note that committees have a `thomasID` property that uniquely identifies them. So we'll create a constraint on this property:
 
