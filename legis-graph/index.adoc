@@ -1,12 +1,16 @@
 = Graphs In Data Journalism
-
+:csv-url: file:///
+:GUIDES: http://localhost:8001/ddj/
 == Graphs In Data Journalism
 
 //image::https://pbs.twimg.com/profile_images/1617809307/ire_twitter_400x400.png[float=right]
 
-. pass:a[<a play-topic='http://guides.neo4j.com/ddj/legisgraph.html'>Explore US Congress</a>]
-. pass:a[<a play-topic='http://guides.neo4j.com/ddj/exercises.html'>Exercises</a>]
-//. pass:a[<a play-topic='http://guides.neo4j.com/ddj/legisgraphfec.html'>US Congress + FEC</a>]
+. pass:a[<a play-topic='{GUIDES}legis-graph-import.html'>IMPORT: Explore US Congress</a>]
+. pass:a[<a play-topic='{GUIDES}legisgraph.html'>EXPLORE: US Congress</a>]
+. pass:a[<a play-topic='{GUIDES}exercises.html'>EXERCISES: US Congress</a>]
+. pass:a[<a play-topic='{GUIDES}fecimport.html'>IMPORT: Federal Election Commission Data</a>]
+. pass:a[<a play-topic='{GUIDES}legisgraphfec.html'>EXPLORE: FEC + US Congress</a>]
+. pass:a[<a play-topic='{GUIDES}legisgraphfec.html'>US Congress + FEC</a>]
 
 //ts.html'>Event Recommendations</a>]
 

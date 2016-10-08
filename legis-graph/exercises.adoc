@@ -55,6 +55,3 @@ image::https://raw.githubusercontent.com/legis-graph/legis-graph/master/img/data
 * Choose a specific legislator and find the subjects of the bills this legislator sponsors. What are the most common subjects.
 
 * *(Bonus)* Only include bills where this legislator was the main sponsor.
-
-
-====

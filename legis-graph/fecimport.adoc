@@ -1,0 +1,17 @@
+= FEC Import
+
+== FEC - Campaign Finance Data
+
+// TODO: The data model we want to build - arrows
+// TODO: an overview of the data and where it comes from
+
+== Import Legislator data
+
+// TODO: first we'll i
+
+[source,cypher]
+----
+CREATE CONSTRAINT ON (l:Legislator) ASSERT l.thomasID IS UNIQUE;
+----
+
+[source,cyp]
