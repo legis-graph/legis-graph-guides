@@ -136,6 +136,7 @@ Using PageRank to find influential Legislators:
 MATCH (l:Legislator) WITH collect(l) AS ls
 CALL apoc.algo.pageRank(ls) YIELD node, score
 RETURN node, score ORDER BY score DESC LIMIT 10
+----
 
 [source,cypher]
 ----
