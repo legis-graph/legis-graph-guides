@@ -11,8 +11,10 @@
 . pass:a[<a play-topic='{GUIDES}/exercises.html'>EXERCISES: US Congress</a>]
 . pass:a[<a play-topic='{GUIDES}/fecimport.html'>IMPORT: Federal Election Commission Data</a>]
 . pass:a[<a play-topic='{GUIDES}/legisgraphfec.html'>EXPLORE: FEC + US Congress</a>]
+. pass:a[<a play-topic='{GUIDES}/export.html'>Export and Data Quality</a>]
 //. pass:a[<a play-topic='{GUIDES}legisgraphfec.html'>US Congress + FEC</a>
 . pass:a[<a play-topic='{GUIDES}/graphalgorithms.html'>Graph Algorithms With US Congress</a>]
+
 
 //ts.html'>Event Recommendations</a>]
 
