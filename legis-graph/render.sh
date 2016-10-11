@@ -10,6 +10,7 @@ $GUIDES/run.sh legis-graph-fec.adoc legisgraphfec.html +1 "$@"
 $GUIDES/run.sh legis-graph-import.adoc legisgraphimport.html +1 "$@"
 $GUIDES/run.sh legis-graph.adoc legisgraph.html +1 "$@"
 $GUIDES/run.sh graphalgorithms.adoc graphalgorithms.html +1 "$@"
+$GUIDES/run.sh legis-graph-export-dq.adoc export.html +1 "$@"
 
 }
 
