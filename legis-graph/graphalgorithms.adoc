@@ -1,137 +1,153 @@
-= Graph Algorithms
-:csv-file: file:///
-:GUIDES: http://localhost:8001/ddj/
+= Congressional Graph Algorithms
 
-== Applying Graph Algorithms
+== Network Analysis With Neo4j Graph Algorithms
 
-We can use Neo4j to apply graph algoriths like centralities and community detection to the data to find further insights. Specifically:
+image::{img}/lg_datamodel.png[float=right]
 
-. Can we find measure "influence" in Congress?
-. Can we find clusters, or communities of legislators who frequently vote together?
+* Centralities
+* Clustering
+* Triadic closures and inferred relationships
+*
+* Global graph algorithms with APOC
 
-== Procedures
 
-Procedures are a new feature in Neo4j 3.x which allow you to write custom code which can be invoked directly from Cypher.
+== US Congress As A Graph
 
-You can read more details in the link:http://neo4j.com/docs/developer-manual/current/#procedures[documentation].
+image::{img}/lg_datamodel.png[float=right]
 
-There are some built in procedures.
-You can see what they are by running the following command:
+=== Datamodel
 
-[source, cypher]
+=== Import
+
+You can import this dataset into Neo4j using http://www.lyonwj.com/LazyWebCypher/?file=https://raw.githubusercontent.com/legis-graph/legis-graph/master/quickstart/114/legis_graph_import_114.cypher[this cypher script] or for a more in-depth data import walkthrough with
+
+* pass:a[<a play-topic='http://guides.neo4j.com/legisgraphimport.html'>this in-depth browser guide</a>]
+
+// TODO: some exploratory queries
+
+=== Exploratory Queries
+
+.The meta model
+[source,cypher,subs=attributes]
 ----
-CALL dbms.procedures()
-----
-
-Try running some of the procedures listed on the page.
-Do they work as you expected?
-
-== Using a procedure's output in a query
-
-We can use the output of procedures in a query as well as passing the output of a query into a procedure.
-For example if we want to get the list of labels in the database in alphabetical order we could write the following query:
-
-[source, cypher]
-----
-CALL db.labels() YIELD label AS label
-RETURN label
-ORDER BY label
+CALL apoc.meta.graph()
 ----
 
-All the built in procedures are used to introspect the database but we can also write our own procedures which can do whatever we want!
+.California legislators
+[source,cypher,subs=attributes]
+----
+MATCH (l:Legislator)-[:REPRESENTS]->(s:State {code: "CA"})
+MATCH (p:Party)<--(l)-->(c:Body)
+RETURN *
+----
 
-== Installing apoc (Awesome procedures)
 
-Lucky for us link:https://twitter.com/mesirii[Michael] has actually done the heavy lifting already and created the link:https://github.com/neo4j-contrib/neo4j-apoc-procedures[apoc] library which contains lots of useful procedures that we can use in our recommendations queries.
+== Bill Cosponsorships
 
-First follow these instructions to get `apoc` installed on your local instance of Neo4j:
+// TODO: query show bill cosponorship
 
-* You should have already copied `apoc.jar` onto your machine.
-If you haven't then grab a USB stick from one of the trainers or download the latest version of apoc from link:https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/latest[]
+// TODO: image for inferred relationshi
 
-* Copy `apoc.jar` into your `plugins` folder wherever you have installed Neo4j.
+[source,cypher,subs=attributes]
+----
+MATCH (b:Bill) WITH b LIMIT 1
+MATCH (l:Legislator)<-[:SPONSORED_BY]-(b)
+RETURN *
+----
 
-////
-* If you're using Neo4j desktop you'll need to explicitly specify where that plugins folder is.
-You can do that by setting `dbms.directories.plugins` in `neo4j.conf`
+image::{img}/bill_cosponsors.png[]
 
-e.g. `dbms.directories.plugins=/Applications/Neo4j\ Community\ Edition.app/Contents/Resources/app/plugins` on Mac OS X
-////
 
-* Restart Neo4j
+=== Persisting Inferred Relationships
 
-== Check apoc installed correctly
+[source,cypher,subs=attributes]
+----
+// Persist inferred COSPONSORED relationships
+MATCH (l1:Legislator)<-[:SPONSORED_BY]-(b:Bill)-[:SPONSORED_BY]->(l2:Legislator)
+WHERE id(l1) < id(l2)
+WITH l1, l2, COUNT(*) AS weight
+CREATE (l1)-[r:COSPONSORED]->(l2)
+SET r.weight = weight
+----
 
-If you run the following command you can see which additional procedures are now available to us:
+== Centrality measures
+
+In graph theory and network analysis, indicators of centrality identify the most important vertices within a graph. Applications include identifying the most influential person(s) in a social network, key infrastructure nodes in the Internet or urban networks, and super-spreaders of disease.
+
+=== Degree Centrality
+
+Degree centrality is the number of relationships connected to a specific node. In the context of this network, it is the number of `COSPONSORED` relationships.
 
 [source,cypher]
 ----
-CALL dbms.procedures() YIELD name AS name, signature AS signature
-WITH name, signature
-WHERE name STARTS WITH "apoc"
-RETURN name, signature
+MATCH (l:Legislator)
+RETURN l, size ((l)<-[:COSPONSORED]-()) AS degree ORDER BY degree DESC LIMIT 25
 ----
 
-Let's give the procedures a try!
-
-== Measuring Influence In Congress
-
-Centrality measures:
+=== Weighted Degree Centrality
 
 [source,cypher]
 ----
-// Degree Centrality
-MATCH (l:Legislator)<-[:SPONSORED_BY]-()
-RETURN l, count(*) AS degree ORDER BY degree DESC LIMIT 10
+MATCH (l:Legislator)-[r:COSPONSORED]-()
+RETURN l AS legislator, sum(r.weight) AS weightedDegree ORDER BY weightedDegree DESC LIMIT 25
 ----
 
-[source,cypher]
-----
-// Betweenness Centrality
-MATCH (l:Legislator) WITH collect(l) AS ls
-CALL apoc.algo.betweenness(['SPONSORED_BY'], ls, 'BOTH') YIELD node, score
-RETURN node, score ORDER BY score DESC LIMIT 10
-----
+== Apoc Procedures
+
+image::https://dl.dropboxusercontent.com/u/67572426/graph_of_thrones/apoc_proc.png[float=right]
+
+=== User Defined Procedures
+
+User defined procedures are written in Java, deployed to the database and callable from Cypher.
+
+=== https://github.com/neo4j-contrib/neo4j-apoc-procedures[Apoc library]
+
+Library of procedures for many common Neo4j tasks, including graph algorithsm, data import, refactoring, indexing, system monitoring, ...
+
+
+== Betweenness Centrality
+
+The betweenness centrality of a node in a network is the number of shortest paths between two other members in the network on which a given node appears.
+
+Betweenness centality is an important metric because it can be used to identify “brokers of information” in the network or nodes that connect disparate clusters.
 
 image::http://www.lyonwj.com/public/img/betweenness-centrality.png[]
 
-
-== Inferring Influence With Graph Theory
-
-[source,cypher]
-----
-MATCH (b:Bill {billID: "hr1014-114"})-[r:SPONSORED_BY]->(sponsor:Legislator)
-WHERE r.cosponsor = false
-MATCH (b)-[s:SPONSORED_BY]->(cosponsor:Legislator)
-WHERE s.cosponsor = true
-//CREATE (cosponsor)-[:INFLUENCED_BY]->(sponsor)
-RETURN *
-----
+.The red nodes have a high betweenness centrality and are connectors of clusters.
 
 [source,cypher]
 ----
-MATCH (b:Bill {billID: "hr1014-114"})-[r:SPONSORED_BY]->(sponsor:Legislator)
-WHERE r.cosponsor = false
-MATCH (b)-[s:SPONSORED_BY]->(cosponsor:Legislator)
-WHERE s.cosponsor = true
-CREATE (cosponsor)-[i:INFLUENCED_BY]->(sponsor)
-RETURN *
+MATCH (l:Legislator)
+WITH collect(l) AS legislators
+CALL apoc.algo.betweenness(['COSPONSORED'], legislators, 'OUTGOING') YIELD node, score
+SET node.betweenness = score
+RETURN node AS legislator, score ORDER BY score DESC LIMIT 25
 ----
 
-Add `INFLUENCED_BY` relationships across the graph:
 
+== Closeness Centrality
+
+Nodes with high closeness centality are often highly connected within clusters in the graph, but not necessarily highly connected outside of the cluster.
+
+Closeness centrality is the inverse of the average distance to all other characters in the network.
+
+image::http://www.lyonwj.com/public/img/closeness-centrality.png[]
+
+.Nodes with high closeness centrality are connected to many other nodes in a network.
 [source,cypher]
 ----
-MATCH (b:Bill)-[r:SPONSORED_BY]->(sponsor:Legislator)
-WHERE r.cosponsor = false
-MATCH (b)-[s:SPONSORED_BY]->(cosponsor:Legislator)
-WHERE s.cosponsor = true
-CREATE (cosponsor)-[:INFLUENCED_BY]->(sponsor)
+MATCH (l:Legislator)
+WITH collect(l) AS legislators
+CALL apoc.algo.closeness(['COSPONSORED'], legislators, 'OUTGOING') YIELD node, score
+RETURN node AS legislator, score ORDER BY score DESC LIMIT 25
 ----
 
-Using PageRank to find influential Legislators:
+
+== PageRank
 
 image::http://www.lyonwj.com/public/img/page-rank.png[]
+
+.The size of each node is proportional to the size and number of nodes with an outgoing relationship to it.
 
 [source,cypher]
 ----
@@ -140,27 +156,110 @@ CALL apoc.algo.pageRank(ls) YIELD node, score
 RETURN node, score ORDER BY score DESC LIMIT 10
 ----
 
+== PageRank - Inferred Relationships
+
+// TODO: insert image from wikipedia
+
+=== Inferred Relationships and Political Influence
+
+The main sponsor of a bill can be said to have demonstrated political influence over cosponsors:
+
 [source,cypher]
 ----
-// Calculate PageRank on Cypher result
-CALL apoc.algo.pageRankWithCypher({iterations:20, write:true, rel_cypher:'MATCH (p1:Legislator)<-[:INFLUENCED_BY]->(p2:Legislator) RETURN id(p1) as source, id(p2) as target, 1 as weight'})
+MATCH (b:Bill)-[r:SPONSORED_BY]->(sponsor:Legislator)
+WHERE r.cosponsor = "0"
+MATCH (b)-[s:SPONSORED_BY]->(cosponsor:Legislator)
+WHERE s.cosponsor = "1"
+RETURN id(sponsor) AS source, id(cosponsor) AS target, count(*) AS weight ORDER BY weight DESC 25
 ----
 
-== Finding communities
+
+=== PageRank On Inferred Relationships
+
+We can run PageRank using inferred relationships without actually persisting these to the graph:
+
+//So let's remove all the `COSPONSORED` relatiionships:
+//
+//[source,cypher]
+//----
+//MATCH ()-[r:COSPONSORED]-()
+//DELETE r
+//----
+
+[source,cypher]
+----
+CALL apoc.algo.pageRankWithCypher({iterations:20, write:true, node_cypher: 'MATCH (l:Legislator) RETURN id(l) AS id', rel_cypher:'MATCH (b:Bill)-[r:SPONSORED_BY]->(sponsor:Legislator)
+WHERE r.cosponsor = "0"
+MATCH (b)-[s:SPONSORED_BY]->(cosponsor:Legislator)
+WHERE s.cosponsor = "1"
+RETURN id(sponsor) AS source, id(cosponsor) AS target, count(*) AS weight ORDER BY weight DESC'})
+----
+
+
+== Most influential Senator with influence over certain topics
+
+[source,cypher]
+----
+MATCH (b:Body {type: "Senate"})<-[:ELECTED_TO]-(l:Legislator)<-[:SPONSORED_BY]-(:Bill)-[d:DEALS_WITH]->(s:Subject)
+WHERE s.title CONTAINS "Technology"
+RETURN l, COUNT(*) AS num ORDER BY l.pagerank DESC LIMIT 10
+----
+
+
+== Community Detection
 
 image::http://www.lyonwj.com/public/img/community-1.png[]
 
-[source,cypher]
-----
-MATCH (l1:Legislator)<-[:SPONSORED_BY]-()-[:SPONSORED_BY]->(l2:Legislator)
-WITH l1, l2, count(*) AS weight
-CREATE (l1)-[r:COSPONSORED]->(l2)
-SET r.weight = weight
-----
+.Community detection algorithms seek to minimize **modularity**, the ratio of the number of relationships across clusters to thhe number of relationships within cluster.
+
+== Community Detection In Congress
+
+First we'll need to filter on only members of the Senate or House, since we won't see bill sponsorhips across bodies.
 
 [source,cypher]
 ----
-CALL apoc.algo.community(25,['Legislator'],'partition','COSPONSORED','OUTGOING','weight',10000)
+MATCH (l:Legislator) WHERE l.type = "House"
+SET l:Rep
 ----
 
+We can run the label propogation community detection algorithm using APOC:
+
+[source,cypher]
+----
+CALL apoc.algo.community(40,['Rep'],'partition','COSPONSORED','OUTGOING','weight',10000)
+----
+
+Now let's see what clusters we've found:
+
+[source,cypher]
+----
+MATCH (l:Rep) WHERE exists(l.partition)
+RETURN l.partition, COUNT(*) AS num
+ORDER BY num DESC
+----
+
+How do these clusters break across party lines?
+
+[source,cypher]
+----
+MATCH (l:Rep)
+RETURN l.partition, l.party, COUNT(*) AS num
+----
+
+== Visualization
+
+image::{img}/community_viz.png[]
+
+* Node size determined by betweenness centrality `:Legislator(betweenness)`
+* Color determined by cluster `:Legislator(partitiion)`
+* Relationship thickness determined by cospnosor weight
+
+
+//== Visualization
+//
+//image::http://www.lyonwj.com/public/img/graph-of-thrones.png[]
+//
+//Generated with https://github.com/johnymontana/neovis.js[neovis.js]
+
+//== Clustering
 
