@@ -33,12 +33,68 @@ image::https://raw.githubusercontent.com/legis-graph/legis-graph/master/img/data
 
 == Data Quality 
 
-The 'Renaissance problem' 
+Zip codes in the committee dataset are not perfect.
+
+Can you find the broken ones?
+
+[source,cypher]
+----
+MATCH (cont:Contribution)-[:MADE_TO]->(com:FECCommittee)-[:FUNDS]->(cand:Legislator)
+RETURN distinct com.zip
+----
+
+
+How can we try to fix them? Truncating the string? Regular expressions?
+
+== Exercise: 
+
+A simple truncate
+
+[source,cypher]
+----
+MATCH (cont:Contribution)-[:MADE_TO]->(com:FECCommittee)-[:FUNDS]->(cand:Legislator)
+WHERE ...
+SET ...
+----
+
+
+Using regular expressions
+
+* Matching on WHERE with =~
+* Update with procedure: apoc.text.replace(<original>,<expr>,<repl>)
+
+[source,cypher]
+----
+MATCH (cont:Contribution)-[:MADE_TO]->(com:FECCommittee)-[:FUNDS]->(cand:Legislator)
+WHERE ...
+SET ...
+----
+
+
+== Using time
+
+Contributions have a date but the format needs to be modified to be usable by Tableau. We need to transform dates like '10072015' into '10/07/2015'
+
+We are going to fix it using a combination of substring function and apoc.text.join
+
+We can update the value of the date field or we can leave it as is and just apply the format on export
+
+[source,cypher]
+----
+apoc.text.join([substring(cont.date...), ... ],"/") as date
+----
+
+And now we are going to produce a time series representation of the donations in Tableau
+
+
+== Advanced analysis for more complex problems
+
+The 'Renaissance Tech problem' 
 
 [source,cypher]
 ----
 MATCH (n:Employer) 
-WHERE n.name CONTAINS 'RENAISSANCE'
+WHERE n.name CONTAINS 'RENAISSANCE TECH'
 RETURN n.name AS name ORDER BY name
 ----
 What can we do about it?
@@ -91,4 +147,3 @@ return employer1, emp1tokencount, employer2, emp2tokencount,
 ----
 
 And from here, decide what do do: do we link the nodes? do we normalize names into a 'canonical' version? 
-
