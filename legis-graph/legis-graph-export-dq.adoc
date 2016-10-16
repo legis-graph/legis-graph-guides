@@ -33,9 +33,9 @@ image::https://raw.githubusercontent.com/legis-graph/legis-graph/master/img/data
 
 == Data Quality 
 
-Zip codes in the committee dataset are not perfect.
+Zip codes in the committee dataset are not perfect. There are different levels of granularity.
 
-Can you find the broken ones?
+Can you identify in the graph the ones that the visualization tool does not understand?
 
 [source,cypher]
 ----
@@ -44,31 +44,30 @@ RETURN distinct com.zip
 ----
 
 
-How can we try to fix them? Truncating the string? Regular expressions?
+How can we try to make all consistent? Truncating the string? Using regular expressions?
+
+We may want to update the value of the date field or we can leave it as is and just apply the correction on export
 
 == Exercise: 
 
-A simple truncate
+* Apply the zip code correction to the export query. You can truncate the zip codes using the substring function.
 
 [source,cypher]
 ----
-MATCH (cont:Contribution)-[:MADE_TO]->(com:FECCommittee)-[:FUNDS]->(cand:Legislator)
-WHERE ...
-SET ...
+MATCH ...
+RETURN ... , truncate(...) AS zip
 ----
 
 
-Using regular expressions
-
-* Matching on WHERE with =~
-* Update with procedure: apoc.text.replace(<original>,<expr>,<repl>)
+* Create a new field on Committee nodes called zip5 containing the 5 digit version of the zip code
 
 [source,cypher]
 ----
-MATCH (cont:Contribution)-[:MADE_TO]->(com:FECCommittee)-[:FUNDS]->(cand:Legislator)
-WHERE ...
-SET ...
+MATCH ... (com:Committee) ...
+SET com.zip5 = truncate(...) 
 ----
+
+The previous could also be done using regular expressions if the modification was more complicated ( Matching on WHERE with _=~_ and updating with procedure/function: _apoc.text.replace(<original>,<expr>,<repl>)_    )
 
 
 == Using time
@@ -77,11 +76,11 @@ Contributions have a date but the format needs to be modified to be usable by Ta
 
 We are going to fix it using a combination of substring function and apoc.text.join
 
-We can update the value of the date field or we can leave it as is and just apply the format on export
+Again, we can update the value of the date field or we can leave it as is and just apply the format on export
 
 [source,cypher]
 ----
-apoc.text.join([substring(cont.date...), ... ],"/") as date
+apoc.text.join([substring(cont.date...), ... ],"/") 
 ----
 
 And now we are going to produce a time series representation of the donations in Tableau
