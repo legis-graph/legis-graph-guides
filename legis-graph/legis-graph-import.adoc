@@ -6,7 +6,7 @@
 == The Data Model
 image::https://raw.githubusercontent.com/legis-graph/legis-graph/master/img/datamodel.png[float=right]
 
-This guide will walk us through importing data from govtrack.us into Neo4j. We'll build the graph model to the right. As we go through we'll learn about `LOAD CSV` functionality to import data into Neo4j from CSV files, how to define schem constraints and a bit about graph data modeling.
+This guide will walk us through importing data from govtrack.us into Neo4j. We'll build the graph model to the right. As we go through we'll learn about `LOAD CSV` functionality to import data into Neo4j from CSV files, how to define schema constraints and a bit about graph data modeling.
 
 Let's get started!
 
