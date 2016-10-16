@@ -43,7 +43,7 @@ RETURN row
 
 [source,cypher,subs=attributes]
 ----
-LOAD CSV WITH HEADERS FROM "{csv-url}cm.txt" AS row FIELDTERMINATOR "|"
+LOAD CSV WITH HEADERS FROM "{csv-url}ccl.txt" AS row FIELDTERMINATOR "|"
 WITH row limit 10
 RETURN row
 ----
@@ -53,7 +53,7 @@ RETURN row
 
 [source,cypher,subs=attributes]
 ----
-LOAD CSV WITH HEADERS FROM "{csv-url}cm.txt" AS row FIELDTERMINATOR "|"
+LOAD CSV WITH HEADERS FROM "{csv-url}itcont_sm.txt" AS row FIELDTERMINATOR "|"
 WITH row limit 10
 RETURN row
 ----
@@ -71,6 +71,8 @@ You'll need to write at least three `LOAD CSV` statements to iterate through eac
 
 image::{img}/fec-dm.png[]
 
+First we'll create a node for each FEC Committee. Let's use the label `FECCommittee` for these.
+
 What property will uniquely identify an FEC Committee node? Create a uniqueness constraint for this label, property pair to ensure no duplicates are created:
 
 [source,cypher]
@@ -82,9 +84,9 @@ CREATE CONSTRAINT ON ... ASSERT ...
 [source,cypher,subs=attributes]
 ----
 USING PERIODIC COMMIT
-LOAD CSV WITH HEADERS FROM "{csv-url}/cm.txt" AS row ...
+LOAD CSV WITH HEADERS FROM "{csv-url}/cm.txt" AS row ... // remember how to set the field terminator?
 WITH row
-MERGE (f:FECCommittee...
+MERGE (f:FECCommittee... // what property uniquely identifies the FEC Committee?
 ON CREATE SET ...
 ...
 ----
@@ -93,13 +95,16 @@ ON CREATE SET ...
 
 image::{img}/fec-dm.png[]
 
+Now that we h
+
 [source,cypher,subs=attributes]
 ----
 USING PERIODIC COMMIT
-...
-MATCH ...
-MATCH ...
-MERGE ...
+// Read from the CSV file that links candidates to committees
+... AS row FIELDTERMIANTOR '|'
+MATCH (c:FECCommittee) WHERE ... // Look up the FECCommittee for this row`
+MATCH (l:Legislator)  WHERE ... // How can we find the Legislator for this row?
+MERGE ... // Create a relationship connecting the Legislator and the FECCommittee indicating this FECCommittee is funding the Legislator's reelection campaign
 ...
 ----
 
@@ -108,15 +113,27 @@ MERGE ...
 
 image::{img}/fec-dm.png[]
 
+We have data about contributions made by individuals to FEC Committees. How should we model these contributions?
+
+Let's add these contributions to our graph:
+
+=== The Individual Contributions File
+
+[source,cypher,subs=attributes]
+----
+LOAD CSV WITH HEADERS FROM "{csv-url}itcont_sm.txt" AS row FIELDTERMINATOR "|"
+WITH row limit 10
+RETURN row
+----
+
+=== Import Individual Contributions
+
 Next we need to create the nodes and relationships for each contribution:
 
 [source,cypher,subs=attributes]
 ----
 USING PERIODIC COMMIT
-...
-MATCH ...
-MATCH ...
-MERGE ...
+LOAD CSV WITH HEADERS FROM "{csv-url}itcont_sm.txt" AS row FIELDTERMINATOR "|"
 ...
 ----
 
