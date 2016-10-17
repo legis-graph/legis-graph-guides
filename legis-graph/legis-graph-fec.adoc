@@ -8,20 +8,11 @@ image::{img}/lgfec-dm.png[]
 
 We've now extended the US Congress dataset to include data on campaign contributions from the FEC. We can now answer interesting questions by querying across both datasets.
 
-//The data for this example comes from
-//
-//This is the basic data model:
-
-//* a `+(:Intermediary)-[:INTERMEDIARY_OF]->(:Entity)+`
-//* an `+(:Officer)-[:OFFICER_OF]->(:Entity)+`
-//* an `+(:Officer)-[:SHAREHOLDER_OF]->(:Entity)+`
-//* an `+(:Officer)-[:REGISTERED_ADDRESS]->(:Address)+`
-//* an `+()-[:SIMILAR_NAME_AND_ADDRESS]->()+`
-
-
 == Examine a single contribution
 
 image::{img}/lgfec-dm.png[]
+
+Let's look at a few contributions and the connections we have in the data.
 
 [source,cypher]
 ----
@@ -33,9 +24,24 @@ MATCH (cont)-[:HAS_OCCUPATION]->(o:Occupation)
 RETURN *
 ----
 
+== FEC Contributions by political party
+
+image::{img}/lgfec-dm.png[]
+
+For all of the contributions that are funding a specific legislator, what is the dollar amount of the total contributions by political party?
+
+[source,cypher]
+----
+// FEC - Contributions by party
+MATCH (cont:Contribution)-[:MADE_TO]->(com:FECCommittee)-[:FUNDS]->(cand:Legislator)
+RETURN sum(cont.amount) AS total, cand.party ORDER BY total DESC
+----
+
 == FEC Contributions for a certain occupation by party
 
 image::{img}/lgfec-dm.png[]
+
+What are the political parties of the candidates whose reelection campaigns are receiving donations from professional bingo players?
 
 [source,cypher]
 ----
@@ -47,6 +53,8 @@ RETURN sum(cont.amount) AS total, cand.party ORDER BY total DESC
 
 
 == What companies' employees made most contributions?
+
+What are the employers with employees making the most contributinons?
 
 image::{img}/lgfec-dm.png[]
 
@@ -62,7 +70,10 @@ RETURN e.name, total ORDER BY total DESC LIMIT 100
 
 image::{img}/lgfec-dm.png[]
 
+Employees of link::http://www.institutionalinvestor.com/article/3592315/asset-management-hedge-funds-and-alternatives/renaissance-technologies-robert-mercer-maintains-trump-support.html[Renaaissance Technologies] appear to be significant contributors. Let's dig into the contrbutions of Renaissance Technologies employees.
+
 === Examine a few contributions from RENAISSANCE TECHNOLOGIES employees
+
 [source,cypher]
 ----
 // FEC - Renaissance Technologies contributions
@@ -97,6 +108,8 @@ RETURN sum(c.amount) AS total, committee.name ORDER BY total DESC LIMIT 25
 
 image::{img}/lgfec-dm.png[]
 
+What is the total dollar amount that each NY legislator has received (in this dataset)?
+
 [source,cypher]
 ----
 // legis-graph-FEC - Contributions for NY legislators
@@ -109,6 +122,8 @@ RETURN l.firstName + " " + l.lastName AS legislator,
 == Contributions for NY legislators by employer
 
 image::{img}/lgfec-dm.png[]
+
+
 
 [source,cypher]
 ----

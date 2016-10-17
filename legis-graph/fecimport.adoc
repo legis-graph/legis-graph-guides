@@ -16,7 +16,7 @@ image::{img}/fec-dm.png[]
 
 == Exploring the raw data
 
-You can just have a look at the first few rows of your csv file without actually doing any data load
+You can just have a look at the first few rows of your csv file without actually doing any data load.
 
 We'll use a subset of the filing data available from the FEC website. We have three flat files:
 
