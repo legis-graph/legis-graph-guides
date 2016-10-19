@@ -11,6 +11,8 @@ $GUIDES/run.sh legis-graph-import.adoc legisgraphimport.html +1 "$@"
 $GUIDES/run.sh legis-graph.adoc legisgraph.html +1 "$@"
 $GUIDES/run.sh graphalgorithms.adoc graphalgorithms.html +1 "$@"
 $GUIDES/run.sh legis-graph-export-dq.adoc export.html +1 "$@"
+$GUIDES/run.sh data-load-overview.adoc dataloadoverview.html +1 "$@"
+$GUIDES/run.sh fec-import-exerise-answers.adoc fecimportanswers.html +1 "$@"
 
 }
 
@@ -18,7 +20,7 @@ $GUIDES/run.sh legis-graph-export-dq.adoc export.html +1 "$@"
 if [ "$1" == "publish" ]; then
   URL=guides.neo4j.com/legisgraph
   render http://$URL -a csv-url=https://dl.dropboxusercontent.com/u/67572426/ -a env-training
-  s3cmd put --recursive -P *.html img answers s3://${URL}/
+  s3cmd put --recursive -P *.html img s3://${URL}/
   s3cmd put -P index.html s3://${URL}
 
   URL=guides.neo4j.com/legisgraph/file
