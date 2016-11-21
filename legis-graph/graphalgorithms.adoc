@@ -170,7 +170,7 @@ MATCH (b:Bill)-[r:SPONSORED_BY]->(sponsor:Legislator)
 WHERE r.cosponsor = "0"
 MATCH (b)-[s:SPONSORED_BY]->(cosponsor:Legislator)
 WHERE s.cosponsor = "1"
-RETURN id(sponsor) AS source, id(cosponsor) AS target, count(*) AS weight ORDER BY weight DESC 25
+RETURN id(sponsor) AS source, id(cosponsor) AS target, count(*) AS weight ORDER BY weight DESC LIMIT 25
 ----
 
 
